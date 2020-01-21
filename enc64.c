@@ -88,20 +88,20 @@ void write_64enc(const char *name, char *arr, int size) {
 
 	for(int i = 0; i < iterate; i++) {
 		arr_64enc[4*i] 		= base[(arr[3 * i] 		>> 2) & 0x3F];
-		arr_64enc[4*i + 1] 	= base[(arr[3 * i] 		<< 4 | arr[3 * i + 1] >> 4) & 0x3F];
-		arr_64enc[4*i + 2] 	= base[(arr[3 * i + 1] 	<< 2 | arr[3 * i + 2] >> 6) & 0x3F];
+		arr_64enc[4*i + 1] 	= base[(arr[3 * i] 		<< 4 & 0x30) | (arr[3 * i + 1] >> 4 & 0x0F)];
+		arr_64enc[4*i + 2] 	= base[(arr[3 * i + 1] 	<< 2 & 0x3C) | (arr[3 * i + 2] >> 6 & 0x03)];
 		arr_64enc[4*i + 3] 	= base[(arr[3 * i + 2] & 0x3F)];
 	}
 
 	if (remainder == 1) {
 		arr_64enc[new_size - 4] = base[(arr[size - 1] >> 2) & 0x3F];
-		arr_64enc[new_size - 3] = base[(arr[size - 1] << 4) & 0x3F];
+		arr_64enc[new_size - 3] = base[(arr[size - 1] << 4) & 0x30];
 		arr_64enc[new_size - 2] = '=';
 		arr_64enc[new_size - 1] = '=';
 	}
 	else if(remainder == 2) {
 		arr_64enc[new_size - 4] = base[(arr[size - 2] >> 2) & 0x3F];
-		arr_64enc[new_size - 3] = base[(arr[size - 2] << 4 | arr[size - 1] >> 4)];
+		arr_64enc[new_size - 3] = base[(arr[size - 2] << 4 & 0x30) | (arr[size - 1] >> 4 & 0x0F)];
 		arr_64enc[new_size - 2] = base[(arr[size - 1] << 2) & 0x3C];
 		arr_64enc[new_size - 1] = '=';
 	}
