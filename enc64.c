@@ -54,10 +54,10 @@ void read_64enc(const char *name, char *arr, int size) {
 
 	if (arr_64enc[read_size - 1] == '=') {
 		if (arr_64enc[read_size - 2] == '=') {
-			arr[size - 1] = decode64(arr_64enc[read_size - 2]) << 2 | decode64(arr_64enc[read_size - 1]) >> 4;
+			arr[size - 1] = decode64(arr_64enc[read_size - 4]) << 2 | decode64(arr_64enc[read_size - 3]) >> 4;
 		} else {
-			arr[size - 2] = decode64(arr_64enc[read_size - 2]) << 2 | decode64(arr_64enc[read_size - 2]) >> 4;
-			arr[size - 1] = decode64(arr_64enc[read_size - 2]) << 4 | decode64(arr_64enc[read_size - 1]) >> 2;
+			arr[size - 2] = decode64(arr_64enc[read_size - 4]) << 2 | decode64(arr_64enc[read_size - 3]) >> 4;
+			arr[size - 1] = decode64(arr_64enc[read_size - 3]) << 4 | decode64(arr_64enc[read_size - 2]) >> 2;
 		}
 	}
 }	
