@@ -1,3 +1,6 @@
+#include "enc64.h"
+
+
 char decode64(const char c) {
 	if (c >= 97) {
 		/* lower case alphabet */
@@ -41,7 +44,6 @@ void read_64enc(const char *name, char *arr, int size) {
 	arr_64enc = malloc(read_size);
 	fscanf(f, "%s", arr_64enc);
 
-	remainder = read_size % 4;
 	iterate = read_size / 4;
 
 	for(int i = 0; i < iterate; i++) {
@@ -50,17 +52,13 @@ void read_64enc(const char *name, char *arr, int size) {
 		arr[3 * i + 2] 	= decode64(arr_64enc[4 * i + 2]) << 6 | decode64(arr_64enc[4 * i + 3]);
 	}
 
-	if (remainder == 1) {
-		arr[size - 1] = decode64(arr_64enc[read_size - 1]) << 2;
-	}
-	else if (remainder == 2) {
-		arr[size - 2] = decode64(arr_64enc[read_size - 2]) << 2 | decode64(arr_64enc[read_size - 2]) >> 4;
-		arr[size - 1] = decode64(arr_64enc[read_size - 1]) << 4;
-	}
-	else if (remainder == 3) {
-		arr[size - 3] = decode64(arr_64enc[read_size - 3]) << 2 | decode64(arr_64enc[read_size - 2]) >> 4;
-		arr[size - 2] = decode64(arr_64enc[read_size - 2]) << 4 | decode64(arr_64enc[read_size - 1]) >> 2;
-		arr[size - 1] = decode64(arr_64enc[read_size - 1]) << 6;
+	if (arr_64enc[read_size - 1] == '=') {
+		if (arr_64enc[read_size - 2] == '=') {
+			arr[size - 1] = decode64(arr_64enc[read_size - 2]) << 2 | decode64(arr_64enc[read_size - 1]) >> 4;
+		} else {
+			arr[size - 2] = decode64(arr_64enc[read_size - 2]) << 2 | decode64(arr_64enc[read_size - 2]) >> 4;
+			arr[size - 1] = decode64(arr_64enc[read_size - 2]) << 4 | decode64(arr_64enc[read_size - 1]) >> 2;
+		}
 	}
 }	
 
@@ -76,10 +74,10 @@ void write_64enc(const char *name, char *arr, int size) {
 			new_size = 4 * iterate;
 			break;
 		case 1:
-			new_size = 4 * iterate + 2;
+			new_size = 4 * iterate + 4; // 1 8bit = 2 6bit, and 2 '='
 			break;
 		case 2:
-			new_size = 4 * iterate + 3;
+			new_size = 4 * iterate + 4; // 2 8bit = 3 6bit, and 1 '='
 			break;
 		default:
 			new_size = 0;
@@ -96,13 +94,16 @@ void write_64enc(const char *name, char *arr, int size) {
 	}
 
 	if (remainder == 1) {
-		arr_64enc[new_size - 2] = base[(arr[size - 1] >> 2) & 0x3F];
-		arr_64enc[new_size - 1] = base[(arr[size - 1] << 4) & 0x3F];
+		arr_64enc[new_size - 4] = base[(arr[size - 1] >> 2) & 0x3F];
+		arr_64enc[new_size - 3] = base[(arr[size - 1] << 4) & 0x3F];
+		arr_64enc[new_size - 2] = '=';
+		arr_64enc[new_size - 1] = '=';
 	}
 	else if(remainder == 2) {
-		arr_64enc[new_size - 3] = base[(arr[size - 2] >> 2) & 0x3F];
-		arr_64enc[new_size - 2] = base[(arr[size - 2] << 4 | arr[size - 1] >> 4)];
-		arr_64enc[new_size - 1] = base[(arr[size - 1] << 2) & 0x3C];
+		arr_64enc[new_size - 4] = base[(arr[size - 2] >> 2) & 0x3F];
+		arr_64enc[new_size - 3] = base[(arr[size - 2] << 4 | arr[size - 1] >> 4)];
+		arr_64enc[new_size - 2] = base[(arr[size - 1] << 2) & 0x3C];
+		arr_64enc[new_size - 1] = '=';
 	}
 
 	FILE *f;
